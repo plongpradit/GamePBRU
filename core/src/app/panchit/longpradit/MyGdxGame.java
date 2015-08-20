@@ -15,9 +15,11 @@ import javax.print.attribute.standard.OrientationRequested;
 public class MyGdxGame extends ApplicationAdapter {
 	// explicit
 	private SpriteBatch batch;
-	private Texture wallpaperTexture;
+	private Texture wallpaperTexture, cloudTexture;
 	private OrthographicCamera objOrthographicCamera;
 	private BitmapFont nameBitmapFont; // จะเขียนตัวหนังสือบนเกม เช่น ชื่อเกม
+	private int xCloudAnInt, yCloudAnInt = 600; // y มาจากความสูงของภาพ
+	private boolean cloudABoolean = true;
 
 	@Override
 
@@ -29,12 +31,15 @@ public class MyGdxGame extends ApplicationAdapter {
 		objOrthographicCamera.setToOrtho(false, 1200, 800); // ให้สี่เหลี่ยมของจอเป็น 1200 x 800 และจะได้นำไปเล่นได้ทุกเครื่อง
 
 		// set up wallpaper
-		wallpaperTexture = new Texture("mywallpaper.gif");
+		wallpaperTexture = new Texture("mywallpaper3.png");
 
 		// set up BitMapFont
 		nameBitmapFont = new BitmapFont();
 		nameBitmapFont.setColor(com.badlogic.gdx.graphics.Color.RED);
 		nameBitmapFont.setScale(4); // ขนาดของตัวหนังสือ
+
+		// setup cloud
+		cloudTexture = new Texture("cloud.png");
 
 
 	} // create เอาไว้กำหนดค่า
@@ -54,9 +59,37 @@ public class MyGdxGame extends ApplicationAdapter {
 		// drawable wallpaper
 		batch.draw(wallpaperTexture, 0, 0);
 
+		// วาง cloud ตรงนี้เพื่อไม่ให้อยู่บนสุด จะบังตัวอักษร
+		batch.draw(cloudTexture, xCloudAnInt, yCloudAnInt);
+
 		// Drawable BitMapFont
-		nameBitmapFont.draw(batch,"Coins PBRU", 50, 600);
+		nameBitmapFont.draw(batch, "Coins PBRU", 50, 750);
 
 		batch.end();
+
+		// move cloud
+		moveCloud();
+
+
 	} // render นี่คือ การวน loop
+
+	private void moveCloud() {
+		// move cloud
+		if (cloudABoolean) {
+			if (xCloudAnInt < 937) {
+				xCloudAnInt += 100 * Gdx.graphics.getDeltaTime();
+			} else {
+				cloudABoolean = !cloudABoolean;
+			}
+		} else {
+			if (xCloudAnInt > 0) {
+				xCloudAnInt -= 100 * Gdx.graphics.getDeltaTime();
+			} else {
+				cloudABoolean = !cloudABoolean;
+			}
+		}
+
+
+	}
+
 } // Main Class
