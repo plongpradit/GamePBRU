@@ -104,7 +104,8 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		// set up showScore on the ending screen
 		showScoreBitmapFont = new BitmapFont();
-		showScoreBitmapFont.setColor(230, 28, 223, 255); // rgb255
+		//showScoreBitmapFont.setColor(230, 28, 223, 255); // rgb255
+		showScoreBitmapFont.setColor(com.badlogic.gdx.graphics.Color.BLUE); //try out
 		showScoreBitmapFont.setScale(5);
 
 
@@ -177,7 +178,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		// when there are 20 coinsfall, the finishABoolen will be set to true and the statements will be executed
 		if (finishABoolean) {
 			batch.draw(wallpaperTexture, 0, 0);
-			showScoreBitmapFont.draw(batch, "Your Score ==> " + Integer.toString(finalScoreAnInt), 300, 700);
+			showScoreBitmapFont.draw(batch, "Your Score: " + Integer.toString(finalScoreAnInt), 400, 700);
 
 			nameBitmapFont.draw(batch, "Game Over!", 450, 500);
 		} // if
