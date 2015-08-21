@@ -2,6 +2,7 @@ package app.panchit.longpradit;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -24,19 +25,19 @@ public class MyGdxGame extends ApplicationAdapter {
 	private SpriteBatch batch;
 	private Texture wallpaperTexture, cloudTexture, pigTexture, coinsTexture, rainTexture; // รูปภาพจะอยู่ที่นี่ทั้งหมด
 	private OrthographicCamera objOrthographicCamera;
-	private BitmapFont nameBitmapFont, scoreBitmapFont; // จะเขียนตัวหนังสือบนเกม เช่น ชื่อเกม
+	private BitmapFont nameBitmapFont, scoreBitmapFont, showScoreBitmapFont; // จะเขียนตัวหนังสือบนเกม เช่น ชื่อเกม
 	private int xCloudAnInt, yCloudAnInt = 600; // y มาจากความสูงของภาพ
-	private boolean cloudABoolean = true;
+	private boolean cloudABoolean = true, finishABoolean = false;
 	private Rectangle pigRectangle, coinsRectangle, rainRectangle; // ของ badlogic เท่านั้น สำหรับเขียน control
 	// การทำ overlap ระหว่าง rectangle ทั้ง 2 pig และ coin
 
 	private Vector3 objVector3;
-	private Sound pigSound,waterDropSound, coinsDropSound; // ต้องเป็นของ badlogic เท่านั้น
+	private Sound pigSound,waterDropSound, coinsDropSound; // ต้องเป็นของ badlogic เท่านั้น Sound เล่นครั้งเดียวแล้วจบเลย
 	private Array<Rectangle> coinsArray, rainArray; // ของ badlogic เท่านั้น สำหรับเขียน control แล้วพิมพ์ R เลือก Rectangle ของ badlogic
 	private long lastDropCoins, lastDropRain;// ให้ปล่อยเหรียญและฝนแบบไม่มีที่สิ้นสุด จะเป็นการ random ของการปล่อยเหรียญที่จะไม่ซ้ำต่ำแหน่งหลังสุด
 	private Iterator<Rectangle> coinsIterator, rainIterator; // Iterator ของ java util / Rectangle ของ badlogic: these are for randomisation
-	private int scoreAnInt; // set score equals to 0 in the beginning
-
+	private int scoreAnInt = 0, falseAnInt = 0, finalScoreAnInt; // set score equals to 0 in the beginning, and the falseAnInt is for when to finish
+	private Music rainMusic, backgroundMusic; // badlogic  เป็นเสียงลูป คือ เล่นเป็น backgroud
 
 	@Override
 	public void create() {
@@ -94,6 +95,17 @@ public class MyGdxGame extends ApplicationAdapter {
 		// create rainArray
 		rainArray = new Array<Rectangle>();
 		rainRandomDrop();
+
+		// set up rainMusic, music background
+		rainMusic = Gdx.audio.newMusic(Gdx.files.internal("rain.mp3"));
+
+		// set up backgroundMusic
+		backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("bggame.mp3"));
+
+		// set up showScore on the ending screen
+		showScoreBitmapFont = new BitmapFont();
+		showScoreBitmapFont.setColor(230, 28, 223, 255); // rgb255
+		showScoreBitmapFont.setScale(5);
 
 
 	} // create เอาไว้กำหนดค่า
@@ -160,12 +172,14 @@ public class MyGdxGame extends ApplicationAdapter {
   		// draw rain
 		for (Rectangle forRain : rainArray) {
 			batch.draw(rainTexture, forRain.x, forRain.y);
-
-
-
 		}
 
+		// when there are 20 coinsfall, the finishABoolen will be set to true and the statements will be executed
+		if (finishABoolean) {
+			batch.draw(wallpaperTexture, 0, 0);
+			showScoreBitmapFont.draw(batch, "Your Score ==> " + Integer.toString(finalScoreAnInt), 500, 750);
 
+		} // if
 
 
 		batch.end();
@@ -181,6 +195,12 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		// random drop rain
 		randomDropRain(); // ทำหน้าที่หย่อนฝน
+
+		// play background music (rainMusic)
+		rainMusic.play();
+
+		// play bggame music
+		backgroundMusic.play();
 
 
 	} // render นี่คือ การวน loop
@@ -207,9 +227,7 @@ public class MyGdxGame extends ApplicationAdapter {
 				rainIterator.remove();
 			}
 
-
 		} // while
-
 
 	} // randomDropRain
 
@@ -227,10 +245,12 @@ public class MyGdxGame extends ApplicationAdapter {
 
 			// when coins into floor, we need to wipe and return the memory allocation, or the memory will be full
 			if (myCoinsRectangle.y + 64 < 0) {
+				falseAnInt += 1; // เพิ่มค่าเมื่อเหรียญตกลงบนพื้น
 				waterDropSound.play(); // when the coin hits the floor, the water drop will sound
-
 				coinsIterator.remove(); // when coin drops from y axis and goes over the width of coin (64_,
 				// the coin will be removed from the screen
+				checkFalse();
+
 			} // if
 
 			// when coins overlap (not necessary to have the same size between pig and coins, when a part hits each other, thing can happen)
@@ -247,6 +267,36 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		} // while loop
 	} // randomDropCoins
+
+	private void checkFalse() {
+		if (falseAnInt > 20 ) {
+			dispose();
+
+			//finishABoolean = !finishABoolean;
+			if (!finishABoolean) {
+				finalScoreAnInt = scoreAnInt;
+			} // if
+			finishABoolean = true;
+
+		} //if
+
+	} // checkFalse... to end the game
+
+	@Override // to write (call) this... lay on the cursor(making sure then the cursor is not in any method)
+	// ... press al fn insert... choose override method.... choose dispose()
+	public void dispose() {
+		super.dispose();
+
+		backgroundMusic.dispose(); // stop backgroundMusic
+		rainMusic.dispose(); // stop rainMusic
+		pigSound.dispose();
+		waterDropSound.dispose();
+		coinsDropSound.dispose();
+
+
+
+
+	}
 
 	private void activeTouchScreen() {
 		if (Gdx.input.isTouched()) {
