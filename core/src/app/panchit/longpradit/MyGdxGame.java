@@ -31,7 +31,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	// การทำ overlap ระหว่าง rectangle ทั้ง 2 pig และ coin
 
 	private Vector3 objVector3;
-	private Sound pigSound; // ต้องเป็นของ badlogic เท่านั้น
+	private Sound pigSound,waterDropSound; // ต้องเป็นของ badlogic เท่านั้น
 	private Array<Rectangle> coinsArray; // ของ badlogic เท่านั้น สำหรับเขียน control แล้วพิมพ์ R เลือก Rectangle ของ badlogic
 	private long lastDropCoins;// ให้ปล่อยเหรียญแบบไม่มีที่สิ้นสุด จะเป็นการ random ของการปล่อยเหรียญที่จะไม่ซ้ำต่ำแหน่งหลังสุด
 	private Iterator<Rectangle> coinsIterator; // Iterator ของ java util / Rectangle ของ badlogic
@@ -75,6 +75,9 @@ public class MyGdxGame extends ApplicationAdapter {
 		// create coinsArray ในการปล่อยเหรียญ เหรียญแต่ละเหรียญคือ array อันแรก คือ array[0]
 		coinsArray = new Array<Rectangle>(); // Rectangle ของ badlogic
 		coinsRandomDrop(); // จะสุ่มหาตำแหน่งปล่อยเหรียญ มีตำแหน่งทั้งหมด 1200 การสุ่มจึงอยู่ระหว่าง 0-1200
+
+		// set up water drop sound
+		waterDropSound = Gdx.audio.newSound(Gdx.files.internal("water_drop.wav"));
 
 
 	} // create เอาไว้กำหนดค่า
@@ -152,8 +155,10 @@ public class MyGdxGame extends ApplicationAdapter {
 			myCoinsRectangle.y -= 50 * Gdx.graphics.getDeltaTime(); // y axis changed, but x no change in case
 			// 50 because coins need to drop slower than pig run
 
-			// when coins into floor, we need to wipe the memory allocation, or the memory will be full
+			// when coins into floor, we need to wipe and return the memory allocation, or the memory will be full
 			if (myCoinsRectangle.y + 64 < 0) {
+				waterDropSound.play(); // when the coin hits the floor, the water drop will sound
+
 				coinsIterator.remove(); // when coin drops from y axis and goes over the width of coin (64_,
 				// the coin will be removed from the screen
 			}
