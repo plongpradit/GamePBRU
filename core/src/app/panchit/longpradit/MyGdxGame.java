@@ -34,7 +34,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	private Sound pigSound; // ต้องเป็นของ badlogic เท่านั้น
 	private Array<Rectangle> coinsArray; // ของ badlogic เท่านั้น สำหรับเขียน control แล้วพิมพ์ R เลือก Rectangle ของ badlogic
 	private long lastDropCoins;// ให้ปล่อยเหรียญแบบไม่มีที่สิ้นสุด จะเป็นการ random ของการปล่อยเหรียญที่จะไม่ซ้ำต่ำแหน่งหลังสุด
-	private Iterator<Rectangle> coinIterator; // Iterator ของ java util / Rectangle ของ badlogic
+	private Iterator<Rectangle> coinsIterator; // Iterator ของ java util / Rectangle ของ badlogic
 
 
 	@Override
@@ -89,7 +89,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		coinsRectangle.height = 64; // ความสูงของภาพเหรียญ
 		coinsArray.add(coinsRectangle);
 		lastDropCoins = TimeUtils.nanoTime(); // timeutil ของ badlogic, nanotime หมายถึง ถ้าค่า random ซ้ำ จะไม่ปล่อยจากที่เดียวกัน
-		
+
 
 
 	} // coinsRandomDrop
@@ -118,6 +118,12 @@ public class MyGdxGame extends ApplicationAdapter {
 		// Drawable pig
 		batch.draw(pigTexture, pigRectangle.x, pigRectangle.y);
 
+		// Drawable coins
+		for (Rectangle forCoins : coinsArray) {
+			batch.draw(coinsTexture, forCoins.x, forCoins.y);
+		}
+
+
 		batch.end();
 
 		// move cloud
@@ -126,8 +132,34 @@ public class MyGdxGame extends ApplicationAdapter {
 		// การ active when touch screen
 		activeTouchScreen();
 
+		// Random drop coins
+		randomDropCoins(); // ทำหน้าที่หย่อนเหรียญ
+
+		//
+
 
 	} // render นี่คือ การวน loop
+
+	private void randomDropCoins() {
+		// timeUtil ของ badlogic
+		// 1E9 means 1 power 9 // random every 1 second, and call coinsRandomDrop()
+		if (TimeUtils.nanoTime() - lastDropCoins > 1E9) {
+			coinsRandomDrop();
+		}
+		coinsIterator = coinsArray.iterator();
+		while (coinsIterator.hasNext()) {
+			Rectangle myCoinsRectangle = coinsIterator.next();
+			myCoinsRectangle.y -= 50 * Gdx.graphics.getDeltaTime(); // y axis changed, but x no change in case
+			// 50 because coins need to drop slower than pig run
+
+			// when coins into floor, we need to wipe the memory allocation, or the memory will be full
+			if (myCoinsRectangle.y + 64 < 0) {
+				coinsIterator.remove(); // when coin drops from y axis and goes over the width of coin (64_,
+				// the coin will be removed from the screen
+			}
+		}
+
+	} // randomDropCoins
 
 	private void activeTouchScreen() {
 		if (Gdx.input.isTouched()) {
