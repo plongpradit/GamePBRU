@@ -31,7 +31,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	// การทำ overlap ระหว่าง rectangle ทั้ง 2 pig และ coin
 
 	private Vector3 objVector3;
-	private Sound pigSound,waterDropSound; // ต้องเป็นของ badlogic เท่านั้น
+	private Sound pigSound,waterDropSound, coinsDropSound; // ต้องเป็นของ badlogic เท่านั้น
 	private Array<Rectangle> coinsArray; // ของ badlogic เท่านั้น สำหรับเขียน control แล้วพิมพ์ R เลือก Rectangle ของ badlogic
 	private long lastDropCoins;// ให้ปล่อยเหรียญแบบไม่มีที่สิ้นสุด จะเป็นการ random ของการปล่อยเหรียญที่จะไม่ซ้ำต่ำแหน่งหลังสุด
 	private Iterator<Rectangle> coinsIterator; // Iterator ของ java util / Rectangle ของ badlogic
@@ -78,6 +78,9 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		// set up water drop sound
 		waterDropSound = Gdx.audio.newSound(Gdx.files.internal("water_drop.wav"));
+
+		// set up coins drop sound
+		coinsDropSound = Gdx.audio.newSound(Gdx.files.internal("coins_drop.wav"));
 
 
 	} // create เอาไว้กำหนดค่า
@@ -161,9 +164,18 @@ public class MyGdxGame extends ApplicationAdapter {
 
 				coinsIterator.remove(); // when coin drops from y axis and goes over the width of coin (64_,
 				// the coin will be removed from the screen
-			}
-		}
+			} // if
 
+			// when coins overlap (not necessary to have the same size between pig and coins, when a part hits each other, thing can happen)
+			// the pig, we want this following happens
+			if (myCoinsRectangle.overlaps(pigRectangle)) {
+				coinsDropSound.play();
+				coinsIterator.remove(); // when coins touch the pig, they will be removed.
+			} // if
+
+
+
+		} // while loop
 	} // randomDropCoins
 
 	private void activeTouchScreen() {
