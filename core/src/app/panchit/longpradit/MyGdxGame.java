@@ -24,7 +24,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	private SpriteBatch batch;
 	private Texture wallpaperTexture, cloudTexture, pigTexture, coinsTexture; // รูปภาพจะอยู่ที่นี่ทั้งหมด
 	private OrthographicCamera objOrthographicCamera;
-	private BitmapFont nameBitmapFont; // จะเขียนตัวหนังสือบนเกม เช่น ชื่อเกม
+	private BitmapFont nameBitmapFont, scoreBitmapFont; // จะเขียนตัวหนังสือบนเกม เช่น ชื่อเกม
 	private int xCloudAnInt, yCloudAnInt = 600; // y มาจากความสูงของภาพ
 	private boolean cloudABoolean = true;
 	private Rectangle pigRectangle, coinsRectangle; // ของ badlogic เท่านั้น สำหรับเขียน control
@@ -35,6 +35,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	private Array<Rectangle> coinsArray; // ของ badlogic เท่านั้น สำหรับเขียน control แล้วพิมพ์ R เลือก Rectangle ของ badlogic
 	private long lastDropCoins;// ให้ปล่อยเหรียญแบบไม่มีที่สิ้นสุด จะเป็นการ random ของการปล่อยเหรียญที่จะไม่ซ้ำต่ำแหน่งหลังสุด
 	private Iterator<Rectangle> coinsIterator; // Iterator ของ java util / Rectangle ของ badlogic
+	private int scoreAnInt; // set score equals to 0 in the begining
 
 
 	@Override
@@ -46,7 +47,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		objOrthographicCamera.setToOrtho(false, 1200, 800); // ให้สี่เหลี่ยมของจอเป็น 1200 x 800 และจะได้นำไปเล่นได้ทุกเครื่อง
 
 		// set up wallpaper
-		wallpaperTexture = new Texture("mywallpaper3.png");
+		wallpaperTexture = new Texture("mywallpaper4.png");
 
 		// set up BitMapFont
 		nameBitmapFont = new BitmapFont();
@@ -81,6 +82,12 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		// set up coins drop sound
 		coinsDropSound = Gdx.audio.newSound(Gdx.files.internal("coins_drop.wav"));
+
+		// set up scoreBitMapFont
+		scoreBitmapFont = new BitmapFont();
+		scoreBitmapFont.setColor(com.badlogic.gdx.graphics.Color.BLUE);
+		scoreBitmapFont.setScale(4); // index value, we can make it bigger
+
 
 
 	} // create เอาไว้กำหนดค่า
@@ -128,6 +135,12 @@ public class MyGdxGame extends ApplicationAdapter {
 		for (Rectangle forCoins : coinsArray) {
 			batch.draw(coinsTexture, forCoins.x, forCoins.y);
 		}
+
+        // drawable score
+		scoreBitmapFont.draw(batch, "Score = " + Integer.toString(scoreAnInt), 800, 750); // 1000 is x, 750 is y (same height as Coins PBRU
+
+
+
 
 
 		batch.end();
