@@ -137,7 +137,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		}
 
         // drawable score
-		scoreBitmapFont.draw(batch, "Score = " + Integer.toString(scoreAnInt), 800, 750); // 1000 is x, 750 is y (same height as Coins PBRU
+		scoreBitmapFont.draw(batch, "Score = " + Integer.toString(scoreAnInt), 750, 750); // 1000 is x, 750 is y (same height as Coins PBRU
 
 
 
