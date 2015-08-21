@@ -177,8 +177,9 @@ public class MyGdxGame extends ApplicationAdapter {
 		// when there are 20 coinsfall, the finishABoolen will be set to true and the statements will be executed
 		if (finishABoolean) {
 			batch.draw(wallpaperTexture, 0, 0);
-			showScoreBitmapFont.draw(batch, "Your Score ==> " + Integer.toString(finalScoreAnInt), 500, 750);
+			showScoreBitmapFont.draw(batch, "Your Score ==> " + Integer.toString(finalScoreAnInt), 300, 700);
 
+			nameBitmapFont.draw(batch, "Game Over!", 450, 500);
 		} // if
 
 
