@@ -22,20 +22,20 @@ import javax.print.attribute.standard.OrientationRequested;
 public class MyGdxGame extends ApplicationAdapter {
 	// explicit
 	private SpriteBatch batch;
-	private Texture wallpaperTexture, cloudTexture, pigTexture, coinsTexture; // รูปภาพจะอยู่ที่นี่ทั้งหมด
+	private Texture wallpaperTexture, cloudTexture, pigTexture, coinsTexture, rainTexture; // รูปภาพจะอยู่ที่นี่ทั้งหมด
 	private OrthographicCamera objOrthographicCamera;
 	private BitmapFont nameBitmapFont, scoreBitmapFont; // จะเขียนตัวหนังสือบนเกม เช่น ชื่อเกม
 	private int xCloudAnInt, yCloudAnInt = 600; // y มาจากความสูงของภาพ
 	private boolean cloudABoolean = true;
-	private Rectangle pigRectangle, coinsRectangle; // ของ badlogic เท่านั้น สำหรับเขียน control
+	private Rectangle pigRectangle, coinsRectangle, rainRectangle; // ของ badlogic เท่านั้น สำหรับเขียน control
 	// การทำ overlap ระหว่าง rectangle ทั้ง 2 pig และ coin
 
 	private Vector3 objVector3;
 	private Sound pigSound,waterDropSound, coinsDropSound; // ต้องเป็นของ badlogic เท่านั้น
-	private Array<Rectangle> coinsArray; // ของ badlogic เท่านั้น สำหรับเขียน control แล้วพิมพ์ R เลือก Rectangle ของ badlogic
-	private long lastDropCoins;// ให้ปล่อยเหรียญแบบไม่มีที่สิ้นสุด จะเป็นการ random ของการปล่อยเหรียญที่จะไม่ซ้ำต่ำแหน่งหลังสุด
-	private Iterator<Rectangle> coinsIterator; // Iterator ของ java util / Rectangle ของ badlogic
-	private int scoreAnInt; // set score equals to 0 in the begining
+	private Array<Rectangle> coinsArray, rainArray; // ของ badlogic เท่านั้น สำหรับเขียน control แล้วพิมพ์ R เลือก Rectangle ของ badlogic
+	private long lastDropCoins, lastDropRain;// ให้ปล่อยเหรียญและฝนแบบไม่มีที่สิ้นสุด จะเป็นการ random ของการปล่อยเหรียญที่จะไม่ซ้ำต่ำแหน่งหลังสุด
+	private Iterator<Rectangle> coinsIterator, rainIterator; // Iterator ของ java util / Rectangle ของ badlogic: these are for randomisation
+	private int scoreAnInt; // set score equals to 0 in the beginning
 
 
 	@Override
@@ -88,9 +88,28 @@ public class MyGdxGame extends ApplicationAdapter {
 		scoreBitmapFont.setColor(com.badlogic.gdx.graphics.Color.BLUE);
 		scoreBitmapFont.setScale(4); // index value, we can make it bigger
 
+		// set up rainTexture
+		rainTexture = new Texture("droplet.png");
+
+		// create rainArray
+		rainArray = new Array<Rectangle>();
+		rainRandomDrop();
 
 
 	} // create เอาไว้กำหนดค่า
+
+	private void rainRandomDrop() {
+		rainRectangle = new Rectangle();
+		rainRectangle.x = MathUtils.random(0, 1136); // 1200 - 64 (rain drop size)
+		rainRectangle.y = 800; // our screen size (width)
+		rainRectangle.width = 64;
+		rainRectangle.height = 64;
+
+		rainArray.add(rainRectangle);
+		lastDropRain = TimeUtils.nanoTime();
+
+	} // rainRandomDrop = this is a rain random... we dont use the same method, cos we dont want the rain and coin drop from the same spot
+
 
 	private void coinsRandomDrop() {
 		coinsRectangle = new Rectangle(); // Rectangle ของ badlogic
@@ -102,7 +121,6 @@ public class MyGdxGame extends ApplicationAdapter {
 		coinsRectangle.height = 64; // ความสูงของภาพเหรียญ
 		coinsArray.add(coinsRectangle);
 		lastDropCoins = TimeUtils.nanoTime(); // timeutil ของ badlogic, nanotime หมายถึง ถ้าค่า random ซ้ำ จะไม่ปล่อยจากที่เดียวกัน
-
 
 
 	} // coinsRandomDrop
@@ -139,6 +157,13 @@ public class MyGdxGame extends ApplicationAdapter {
         // drawable score
 		scoreBitmapFont.draw(batch, "Score = " + Integer.toString(scoreAnInt), 750, 750); // 1000 is x, 750 is y (same height as Coins PBRU
 
+  		// draw rain
+		for (Rectangle forRain : rainArray) {
+			batch.draw(rainTexture, forRain.x, forRain.y);
+
+
+
+		}
 
 
 
@@ -151,13 +176,42 @@ public class MyGdxGame extends ApplicationAdapter {
 		// การ active when touch screen
 		activeTouchScreen();
 
-		// Random drop coins
+		// random drop coins
 		randomDropCoins(); // ทำหน้าที่หย่อนเหรียญ
 
-		//
+		// random drop rain
+		randomDropRain(); // ทำหน้าที่หย่อนฝน
 
 
 	} // render นี่คือ การวน loop
+
+	private void randomDropRain() {
+		if (TimeUtils.nanoTime() - lastDropRain >1E9) {
+			rainRandomDrop();
+		} // if every 1 second, there will be a rain drop
+		rainIterator = rainArray.iterator();
+		while (rainIterator.hasNext()) {
+			Rectangle myRainRectangle = rainIterator.next();
+			myRainRectangle.y -= 20 * Gdx.graphics.getDeltaTime(); // ความเร็วของฝนที่จะตกลงมาในแนวดิ่ง (แกน y เปลี่ยน แต่ x เท่าเดิม
+
+			// when rain touches the floor
+			if (myRainRectangle.y + 64 < 0) {
+				waterDropSound.play();
+				rainIterator.remove();
+			} // if
+
+			// when rain overlaps the pig, the following statements are executed
+			if (myRainRectangle.overlaps(pigRectangle)) {
+				scoreAnInt -= 1;
+				waterDropSound.play();
+				rainIterator.remove();
+			}
+
+
+		} // while
+
+
+	} // randomDropRain
 
 	private void randomDropCoins() {
 		// timeUtil ของ badlogic
@@ -168,7 +222,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		coinsIterator = coinsArray.iterator();
 		while (coinsIterator.hasNext()) {
 			Rectangle myCoinsRectangle = coinsIterator.next();
-			myCoinsRectangle.y -= 50 * Gdx.graphics.getDeltaTime(); // y axis changed, but x no change in case
+			myCoinsRectangle.y -= 50 * Gdx.graphics.getDeltaTime(); // y axis changed, but x no change in this case
 			// 50 because coins need to drop slower than pig run
 
 			// when coins into floor, we need to wipe and return the memory allocation, or the memory will be full
@@ -182,6 +236,9 @@ public class MyGdxGame extends ApplicationAdapter {
 			// when coins overlap (not necessary to have the same size between pig and coins, when a part hits each other, thing can happen)
 			// the pig, we want this following happens
 			if (myCoinsRectangle.overlaps(pigRectangle)) {
+				scoreAnInt += 1; // เพิ่มคะแนน
+
+
 				coinsDropSound.play();
 				coinsIterator.remove(); // when coins touch the pig, they will be removed.
 			} // if
