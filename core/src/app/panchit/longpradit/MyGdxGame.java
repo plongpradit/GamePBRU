@@ -8,24 +8,33 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.TimeUtils;
 
 import java.awt.Color;
+import java.util.Iterator;
 
 import javax.print.attribute.standard.OrientationRequested;
 
 public class MyGdxGame extends ApplicationAdapter {
 	// explicit
 	private SpriteBatch batch;
-	private Texture wallpaperTexture, cloudTexture, pigTexture; // รูปภาพจะอยู่ที่นี่ทั้งหมด
+	private Texture wallpaperTexture, cloudTexture, pigTexture, coinsTexture; // รูปภาพจะอยู่ที่นี่ทั้งหมด
 	private OrthographicCamera objOrthographicCamera;
 	private BitmapFont nameBitmapFont; // จะเขียนตัวหนังสือบนเกม เช่น ชื่อเกม
 	private int xCloudAnInt, yCloudAnInt = 600; // y มาจากความสูงของภาพ
 	private boolean cloudABoolean = true;
-	private Rectangle pigRectangle; // ของ badlogic เท่านั้น สำหรับเขียน control
+	private Rectangle pigRectangle, coinsRectangle; // ของ badlogic เท่านั้น สำหรับเขียน control
+	// การทำ overlap ระหว่าง rectangle ทั้ง 2 pig และ coin
+
 	private Vector3 objVector3;
 	private Sound pigSound; // ต้องเป็นของ badlogic เท่านั้น
+	private Array<Rectangle> coinsArray; // ของ badlogic เท่านั้น สำหรับเขียน control แล้วพิมพ์ R เลือก Rectangle ของ badlogic
+	private long lastDropCoins;// ให้ปล่อยเหรียญแบบไม่มีที่สิ้นสุด จะเป็นการ random ของการปล่อยเหรียญที่จะไม่ซ้ำต่ำแหน่งหลังสุด
+	private Iterator<Rectangle> coinIterator; // Iterator ของ java util / Rectangle ของ badlogic
 
 
 	@Override
@@ -60,7 +69,30 @@ public class MyGdxGame extends ApplicationAdapter {
 		// set up pig sound
 		pigSound = Gdx.audio.newSound(Gdx.files.internal("pig.wav"));
 
+		// set up coins
+		coinsTexture = new Texture("coins.png");
+
+		// create coinsArray ในการปล่อยเหรียญ เหรียญแต่ละเหรียญคือ array อันแรก คือ array[0]
+		coinsArray = new Array<Rectangle>(); // Rectangle ของ badlogic
+		coinsRandomDrop(); // จะสุ่มหาตำแหน่งปล่อยเหรียญ มีตำแหน่งทั้งหมด 1200 การสุ่มจึงอยู่ระหว่าง 0-1200
+
+
 	} // create เอาไว้กำหนดค่า
+
+	private void coinsRandomDrop() {
+		coinsRectangle = new Rectangle(); // Rectangle ของ badlogic
+		coinsRectangle.x = MathUtils.random(0,1136); // พิมพ์ Mau จะขึ้นของ badlogic, เลือก random ที่มี float start, 0-(1200-64) ขนาดของเหรียญ
+		// เมื่อ deltatime เปลี่ยน เหรียญก็จะตกลงมาเรื่อย ๆ ต่อเนื่อง
+
+		coinsRectangle.y = 800; // คงที่ระดับความสูงเดิม
+		coinsRectangle.width = 64; // ความกว้างของภาพเหรียญ
+		coinsRectangle.height = 64; // ความสูงของภาพเหรียญ
+		coinsArray.add(coinsRectangle);
+		lastDropCoins = TimeUtils.nanoTime(); // timeutil ของ badlogic, nanotime หมายถึง ถ้าค่า random ซ้ำ จะไม่ปล่อยจากที่เดียวกัน
+		
+
+
+	} // coinsRandomDrop
 
 	@Override
 	public void render() {
@@ -106,7 +138,8 @@ public class MyGdxGame extends ApplicationAdapter {
 			objVector3 = new Vector3(); // ทำหน้าที่เก็บค่าที่เมื่อนิ้วโดนจอ จะรู้ตำแหน่งของจอ
 			objVector3.set(Gdx.input.getX(), Gdx.input.getY(), 0); // เมื่อมีการคลิก ให้ดึงค่า x y มาให้เรา
 
-			if (objVector3.x < 600) {
+			// จะใช้ bjVector3.x < 600 ก็ได้
+			if (objVector3.x < Gdx.graphics.getWidth()/2) {
 				//pigRectangle.x -= 10; // โค้ดนี้ไม่ได้คำนึ่งหมูสามารถวิ่งตกกรอบ เลยเปลี่ยนเป็นด้านล่าง
 				if (pigRectangle.x < 0) {
 					pigRectangle.x = 0;
